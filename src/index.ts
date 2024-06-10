@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(morgan("tiny"));
 
-app.get("/status", (_, res) => {
+app.get("/", (_, res) => {
   res.status(200).json({ message: "ok" });
 });
 
