@@ -24,4 +24,9 @@ authRoutes.post(
   validate(requestPasswordResetSchema),
   requestPasswordReset
 );
-authRoutes.post("/reset-password", resetPassword);
+authRoutes.post(
+  "/reset-password",
+  validate(resetPasswordSchema),
+  resetPassword
+);
+// authRoutes.post("/change-password", authenticateUser, changePassword);

@@ -8,6 +8,7 @@ import {
   sendVerificationEmail,
 } from "../utils/sendVerificationEmail";
 
+// Signup
 export const signup = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
 
@@ -45,6 +46,7 @@ export const signup = async (req: Request, res: Response) => {
   }
 };
 
+// SignIn
 export const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
@@ -76,6 +78,7 @@ export const signIn = async (req: Request, res: Response) => {
   }
 };
 
+// Verify Email
 export const verifyEmail = async (req: Request, res: Response) => {
   const { token } = req.query;
 
@@ -152,3 +155,45 @@ export const resetPassword = async (req: Request, res: Response) => {
     res.status(500).json({ error: error });
   }
 };
+
+// Change Password
+
+// export const changePassword = async (req: Request, res: Response) => {
+//   const { currentPassword, newPassword } = req.body;
+//   const user = req.user;
+
+//   if (!user) {
+//     return res.status(400).json({ error: "User not found" });
+//   }
+//   try {
+//     const existingUser = await prismaClient.user.findUnique({
+//       where: { id: user.id },
+//     });
+
+//     if (!existingUser) {
+//       return res.status(400).json({ error: "User not found" });
+//     }
+
+//     // Check if current password matches
+//     if (!currentPassword || !newPassword) {
+//       return res
+//         .status(400)
+//         .json({ error: "Current password and new password are required" });
+//     }
+
+//     if (!(await compareSync(currentPassword, existingUser.password || ""))) {
+//       return res.status(400).json({ error: "Current password is incorrect" });
+//     }
+
+//     await prismaClient.user.update({
+//       where: { id: user.id },
+//       data: {
+//         password: hashSync(newPassword, 10),
+//       },
+//     });
+
+//     res.json({ message: "Password changed successfully" });
+//   } catch (error) {
+//     res.status(500).json({ error: error });
+//   }
+// };

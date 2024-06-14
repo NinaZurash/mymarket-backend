@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
+import { prismaClient } from "../lib/prisma";
 
 export const validate = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -33,3 +34,31 @@ export const verifyToken = (
     next();
   });
 };
+
+// export const authenticateUser = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   const token = req.header("Authorization")?.replace("Bearer ", "");
+//   if (!token) {
+//     return res.status(401).json({ error: "Authorization token missing" });
+//   }
+
+//   try {
+//     const decoded: any = jwt.verify(token, JWT_SECRET);
+//     const user = await prismaClient.user.findUnique({
+//       where: { id: decoded.userId },
+//     });
+
+//     if (!user) {
+//       return res.status(401).json({ error: "Unauthorized" });
+//     }
+
+//     req.user = user;
+//     next();
+//   } catch (error) {
+//     console.error("Authentication error:", error);
+//     return res.status(401).json({ error: "Unauthorized" });
+//   }
+// };
