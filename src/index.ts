@@ -1,13 +1,9 @@
 import express, { Express, Request, Response } from "express";
-import dotenv from "dotenv";
 import morgan from "morgan";
-import { prisma } from "./lib/prisma";
 import { rootRouter } from "./routes";
+import { PORT } from "./config";
 
-dotenv.config();
 const app: Express = express();
-
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(morgan("tiny"));
