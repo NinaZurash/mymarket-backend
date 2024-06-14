@@ -1,3 +1,9 @@
 /dist
 /node_modules
 .env
+
+# Husky
+.husky/_
+
+# ESLint
+.eslintcache
