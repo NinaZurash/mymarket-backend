@@ -77,3 +77,28 @@ export const resetPasswordSchema = Joi.object({
     "any.required": "Token is required",
   }),
 });
+
+export const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string()
+    .min(6)
+    .pattern(new RegExp("^[a-zA-Z0-9]{6,30}$"))
+    .required()
+    .messages({
+      "string.min": "Current password must be at least 6 characters long",
+      "string.pattern.base":
+        "Current password can only contain alphanumeric characters",
+      "string.empty": "Current password is required",
+      "any.required": "Current password is required",
+    }),
+  newPassword: Joi.string()
+    .min(6)
+    .pattern(new RegExp("^[a-zA-Z0-9]{6,30}$"))
+    .required()
+    .messages({
+      "string.min": "New password must be at least 6 characters long",
+      "string.pattern.base":
+        "New password can only contain alphanumeric characters",
+      "string.empty": "New password is required",
+      "any.required": "New password is required",
+    }),
+});

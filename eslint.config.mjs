@@ -1,9 +1,25 @@
-import globals from "globals";
 import pluginJs from "@eslint/js";
-import tseslint from "typescript-eslint";
 
-export default [
-  { languageOptions: { globals: globals.browser } },
-  pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
-];
+export default {
+  overrides: [
+    {
+      files: ["*.js", "*.jsx"],
+      extends: ["eslint:recommended", pluginJs.configs.recommended],
+      rules: {
+        // Add any JavaScript specific rules here
+      },
+    },
+    {
+      files: ["*.ts", "*.tsx"],
+      parser: "@typescript-eslint/parser",
+      plugins: ["@typescript-eslint"],
+      extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+      rules: {
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { argsIgnorePattern: "^_" },
+        ],
+      },
+    },
+  ],
+};

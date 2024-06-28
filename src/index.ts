@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express } from "express";
 import morgan from "morgan";
 import { rootRouter } from "./routes";
 import { PORT } from "./config";

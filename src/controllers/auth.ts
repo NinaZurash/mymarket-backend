@@ -7,6 +7,7 @@ import {
   generateVerificationToken,
   sendVerificationEmail,
 } from "../utils/sendVerificationEmail";
+import { AuthenticatedRequest } from "../types";
 
 // Signup
 export const signup = async (req: Request, res: Response) => {
@@ -90,7 +91,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     }
 
     await prismaClient.user.update({
-      where: { id: (decoded as any).userId },
+      where: { id: decoded.userId },
       data: { emailVerified: new Date() },
     });
 
@@ -158,42 +159,45 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 // Change Password
 
-// export const changePassword = async (req: Request, res: Response) => {
-//   const { currentPassword, newPassword } = req.body;
-//   const user = req.user;
+export const changePassword = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const { currentPassword, newPassword } = req.body;
+  const user = req.user;
 
-//   if (!user) {
-//     return res.status(400).json({ error: "User not found" });
-//   }
-//   try {
-//     const existingUser = await prismaClient.user.findUnique({
-//       where: { id: user.id },
-//     });
+  if (!user) {
+    return res.status(400).json({ error: "User not found" });
+  }
+  try {
+    const existingUser = await prismaClient.user.findUnique({
+      where: { id: user.id },
+    });
 
-//     if (!existingUser) {
-//       return res.status(400).json({ error: "User not found" });
-//     }
+    if (!existingUser) {
+      return res.status(400).json({ error: "User not found" });
+    }
 
-//     // Check if current password matches
-//     if (!currentPassword || !newPassword) {
-//       return res
-//         .status(400)
-//         .json({ error: "Current password and new password are required" });
-//     }
+    // Check if current password matches
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: "Current password and new password are required" });
+    }
 
-//     if (!(await compareSync(currentPassword, existingUser.password || ""))) {
-//       return res.status(400).json({ error: "Current password is incorrect" });
-//     }
+    if (!(await compareSync(currentPassword, existingUser.password || ""))) {
+      return res.status(400).json({ error: "Current password is incorrect" });
+    }
 
-//     await prismaClient.user.update({
-//       where: { id: user.id },
-//       data: {
-//         password: hashSync(newPassword, 10),
-//       },
-//     });
+    await prismaClient.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashSync(newPassword, 10),
+      },
+    });
 
-//     res.json({ message: "Password changed successfully" });
-//   } catch (error) {
-//     res.status(500).json({ error: error });
-//   }
-// };
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
