@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prismaClient } from "../lib/prisma";
 import { compareSync, hashSync } from "bcrypt";
 import * as jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../config";
+import { JWT_SECRET, REFRESH_TOKEN_SECRET } from "../config";
 import {
   generateVerificationToken,
   sendVerificationEmail,
@@ -14,7 +14,6 @@ export const signup = async (req: Request, res: Response) => {
   const { email, password, name } = req.body;
 
   try {
-    // Check if the user already exists
     const existingUser = await prismaClient.user.findFirst({
       where: { email },
     });
@@ -66,14 +65,34 @@ export const signIn = async (req: Request, res: Response) => {
       throw Error("Invalid password");
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       {
         userId: user.id,
       },
-      JWT_SECRET
+      JWT_SECRET,
+      {
+        expiresIn: "1m",
+      }
     );
 
-    res.json({ user, token });
+    const refreshToken = jwt.sign(
+      {
+        userId: user.id,
+      },
+      REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    res.json({ user, token: accessToken });
   } catch (error) {
     res.status(500).json({ error: error });
   }
@@ -130,16 +149,20 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 };
 
 // Reset Password
-export const resetPassword = async (req: Request, res: Response) => {
-  const { token, newPassword } = req.body;
+export const resetPassword = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const { newPassword } = req.body;
+  const verifiedUser = req.user;
 
   try {
-    const decoded = jwt.verify(token as string, JWT_SECRET) as {
-      userId: string;
-    };
+    if (!verifiedUser) {
+      return res.status(400).json({ error: "Invalid token" });
+    }
 
     const user = await prismaClient.user.findFirst({
-      where: { id: decoded.userId },
+      where: { id: verifiedUser.id },
     });
 
     if (!user) {
@@ -147,7 +170,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     await prismaClient.user.update({
-      where: { id: decoded.userId },
+      where: { id: verifiedUser.id },
       data: { password: hashSync(newPassword, 10) },
     });
 
@@ -165,7 +188,7 @@ export const changePassword = async (
 ) => {
   const { currentPassword, newPassword } = req.body;
   const user = req.user;
-
+  console.log(user);
   if (!user) {
     return res.status(400).json({ error: "User not found" });
   }
@@ -200,4 +223,54 @@ export const changePassword = async (
   } catch (error) {
     res.status(500).json({ error: error });
   }
+};
+
+export const refresh = async (req: Request, res: Response) => {
+  const cookies = req.cookies;
+
+  if (!cookies.jwt) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const refreshToken = cookies.jwt;
+
+  try {
+    const decoded = jwt.verify(
+      refreshToken,
+      REFRESH_TOKEN_SECRET
+    ) as jwt.JwtPayload;
+
+    if (typeof decoded !== "object" || !("userId" in decoded)) {
+      return res.status(400).json({ error: "Invalid token" });
+    }
+
+    const user = await prismaClient.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const accessToken = jwt.sign({ userId: user.id }, JWT_SECRET, {
+      expiresIn: "10s",
+    });
+
+    res.json({ user, token: accessToken });
+  } catch (err) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+};
+
+export const signOut = async (req: Request, res: Response) => {
+  const cookies = req.cookies;
+  if (!cookies.jwt) {
+    return res.status(204);
+  }
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
+  res.json({ message: "Signed out successfully, Cookie cleared" });
 };

@@ -1,13 +1,14 @@
 import { Router } from "express";
 import {
   changePassword,
+  refresh,
   requestPasswordReset,
   resetPassword,
   signIn,
   signup,
   verifyEmail,
 } from "../controllers/auth";
-import { authenticateUser, validate } from "../middlewares/auth";
+import { authenticateUser, validate, verifyToken } from "../middlewares/auth";
 import {
   changePasswordSchema,
   requestPasswordResetSchema,
@@ -35,5 +36,8 @@ authRoutes.post(
   "/change-password",
   authenticateUser,
   validate(changePasswordSchema),
+  verifyToken,
   changePassword
 );
+
+authRoutes.get("/refresh-token", refresh);

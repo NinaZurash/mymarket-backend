@@ -18,22 +18,29 @@ export const validate = (schema: Joi.ObjectSchema) => {
 };
 
 export const verifyToken = (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.headers["authorization"];
+  const authHeader =
+    req.headers.authorization || (req.headers.Authorization as String);
 
-  if (!token) {
-    return res.status(403).json({ error: "No token provided" });
+  if (!authHeader && !authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err) => {
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(500).json({ error: "Failed to authenticate token" });
     }
-
-    next();
+    if (typeof decoded === "object" && "userId" in decoded) {
+      req.user = (decoded as JwtPayload).userId;
+      next();
+    } else {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
   });
 };
 

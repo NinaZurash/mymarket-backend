@@ -72,10 +72,6 @@ export const resetPasswordSchema = Joi.object({
       "string.empty": "New password is required",
       "any.required": "New password is required",
     }),
-  token: Joi.string().required().messages({
-    "string.empty": "Token is required",
-    "any.required": "Token is required",
-  }),
 });
 
 export const changePasswordSchema = Joi.object({
