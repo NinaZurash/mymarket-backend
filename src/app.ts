@@ -14,7 +14,7 @@ app.use("/api", rootRouter);
 app.use(errorHandler);
 
 app.get("/", (req, res) => {
-  res.send("application running successfully");
+  res.send("application running successfully!");
 });
 
 app.listen(PORT, () => {
