@@ -1,0 +1,8 @@
+version: "3"
+services:
+  app:
+    image: ninazurash/docker-test:1.0
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
