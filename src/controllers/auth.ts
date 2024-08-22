@@ -49,7 +49,6 @@ export const signup = async (req: Request, res: Response) => {
 // SignIn
 export const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
   try {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
@@ -188,7 +187,6 @@ export const changePassword = async (
 ) => {
   const { currentPassword, newPassword } = req.body;
   const user = req.user;
-  console.log(user);
   if (!user) {
     return res.status(400).json({ error: "User not found" });
   }

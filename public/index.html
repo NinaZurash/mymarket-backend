@@ -82,7 +82,7 @@
       socket.on("message", (data) => {
         const message = document.createElement("p");
         message.textContent = data;
-        console.log("here is a socket message", data);
+        // console.log("here is a socket message", data);
         chat.appendChild(message);
         chat.scrollTop = chat.scrollHeight;
       });

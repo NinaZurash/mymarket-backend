@@ -1,16 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
 import { prismaClient } from "../lib/prisma";
 import { AuthenticatedRequest } from "../types";
+import { Socket } from "socket.io";
 
 export const validate = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error } = schema.validate(req.body);
     if (error) {
       const message = error.details[0].message;
-      console.log(message);
+      // console.log(message);
       return res.status(400).json({ error: message });
     }
     next();
@@ -53,7 +54,6 @@ export const authenticateUser = async (
   if (!token) {
     return res.status(401).json({ error: "Authorization token missing" });
   }
-
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload & {
       userId: string;
@@ -72,4 +72,32 @@ export const authenticateUser = async (
     console.error("Authentication error:", error);
     return res.status(401).json({ error: "Unauthorized" });
   }
+};
+
+export const verifySocketToken = (
+  socket: Socket,
+  next: (err?: Error) => void
+) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error("Unauthorized"));
+  }
+
+  jwt.verify(
+    token,
+    JWT_SECRET,
+    (err: Error | null, decoded: string | JwtPayload | undefined) => {
+      if (
+        err ||
+        !decoded ||
+        typeof decoded !== "object" ||
+        !("userId" in decoded)
+      ) {
+        return next(new Error("Unauthorized"));
+      }
+      socket.data.userId = decoded.userId;
+      console.log(decoded.userId);
+      next();
+    }
+  );
 };
